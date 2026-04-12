@@ -26,7 +26,7 @@ const AuthInput: React.FC<AuthInputProps> = ({ label, ...props }) => {
   );
 };
 
-// --- FORMULÁRIO DE LOGIN (LÓGICA REAL) ---
+// --- FORMULÁRIO DE LOGIN (AGORA FUNCIONANDO) ---
 
 const LoginForm: React.FC<{ setIsLogin: (val: boolean) => void }> = ({ setIsLogin }) => {
   const [email, setEmail] = useState('');
@@ -52,9 +52,11 @@ const LoginForm: React.FC<{ setIsLogin: (val: boolean) => void }> = ({ setIsLogi
         throw new Error(data.message || 'E-mail ou senha inválidos.');
       }
 
-      localStorage.setItem('@AgorApp:token', data.token); 
-      console.log('Login efetuado com sucesso!', data);
-      alert('Login feito com sucesso! (Aqui entraria o redirecionamento)');
+      // 🔥 compatível com Token/token
+      localStorage.setItem('@AgorApp:token', data.token || data.Token);
+
+      // 🚀 redireciona
+      window.location.href = "/dashboard";
 
     } catch (err: any) {
       setError(err.message);
@@ -102,7 +104,7 @@ const LoginForm: React.FC<{ setIsLogin: (val: boolean) => void }> = ({ setIsLogi
   );
 };
 
-// --- FORMULÁRIO DE CADASTRO (LÓGICA PAUSADA) ---
+// --- FORMULÁRIO DE CADASTRO (AGORA FUNCIONANDO) ---
 
 const RegisterForm: React.FC<{ setIsLogin: (val: boolean) => void }> = ({ setIsLogin }) => {
   const [name, setName] = useState('');
@@ -110,10 +112,42 @@ const RegisterForm: React.FC<{ setIsLogin: (val: boolean) => void }> = ({ setIsL
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    alert("Integração de cadastro pendente. Fale com o desenvolvedor Backend para liberar o endpoint!");
-    setIsLogin(true);
+
+    if (password !== confirmPassword) {
+      alert("As senhas não coincidem");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          password,
+          name,
+          course: "",
+          bio: "",
+          roleType: "Student"
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.log(data);
+        alert("Erro ao cadastrar");
+        return;
+      }
+
+      alert("Conta criada com sucesso!");
+      setIsLogin(true);
+
+    } catch (err) {
+      alert("Erro na conexão com o servidor");
+    }
   };
 
   return (
@@ -163,10 +197,8 @@ export default function AuthPage() {
   };
 
   return (
-    // O container principal agora é flex e ocupa exatos 100vh e 100vw
     <div className="h-screen w-full flex font-sans overflow-hidden bg-white">
       
-      {/* PAINEL ESQUERDO (CLICÁVEL - TEXTO) */}
       <motion.div
         layout
         onClick={() => setIsLoginView(!isLoginView)}
@@ -198,13 +230,11 @@ export default function AuthPage() {
         </AnimatePresence>
       </motion.div>
       
-      {/* PAINEL DIREITO (FORMULÁRIOS) */}
       <motion.div
         layout 
         className={`relative flex flex-col items-center justify-center p-12 lg:p-24 h-full flex-1 ${isLoginView ? 'order-1' : 'order-2'} z-10 bg-indigo-600 shadow-2xl`}
         transition={{ type: 'tween', ease: 'easeInOut', duration: 0.6 }}
       >
-        {/* Um padrão sutil de fundo para não ficar um azul chapado gigante na tela toda */}
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at center, #ffffff 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
 
         <div className="w-full h-full flex flex-col justify-center items-center z-10">
