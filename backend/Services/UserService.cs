@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
-using Nexora.Api.Dtos;
+using Nexora.Api.Dtos.Requests;
+using Nexora.Api.Dtos.Responses;
 using Nexora.Api.Interfaces;
 using Nexora.Api.Models;
 using Nexora.Api.Results;
@@ -21,20 +22,20 @@ public class UserService : IUserService
         if (user == null)
             return new UserResult { Succeeded = false, IsNotFound = true, Message = "usuário não encontrado." };
 
-        var userDto = new UserDto
+        var userDto = new UserResponseDto
         {
             Id = user.Id,
             Email = user.Email!,
             Name = user.Name,
             Course = user.Course,
             Bio = user.Bio,
-            RoleType = user.RoleType
+            RoleType = user.RoleType.ToString()
         };
 
         return new UserResult { Succeeded = true, Data = userDto };
     }
 
-    public async Task<UserResult> UpdateProfileAsync(string userId, UpdateProfileDto model)
+    public async Task<UserResult> UpdateProfileAsync(string userId, UpdateProfileRequestDto model)
     {
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
@@ -51,7 +52,7 @@ public class UserService : IUserService
         return new UserResult { Succeeded = true, Message = "perfil atualizado com sucesso!" };
     }
 
-    public async Task<UserResult> ChangePasswordAsync(string userId, ChangePasswordDto model)
+    public async Task<UserResult> ChangePasswordAsync(string userId, ChangePasswordRequestDto model)
     {
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)

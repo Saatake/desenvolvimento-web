@@ -1,6 +1,6 @@
 using Nexora.Api.Models;
 
-namespace Nexora.Api.Services;
+namespace Nexora.Api.Interfaces;
 
 public interface ITokenService
 {

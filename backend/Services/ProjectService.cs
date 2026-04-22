@@ -22,7 +22,7 @@ public class ProjectService : IProjectService
             Description = request.Description,
             GithubLink = request.GithubLink,
             ImageUrl = request.ImageUrl,
-            Category = request.Category.ToString(),
+            Category = request.Category,
             UserId = userId,
             CreatedAt = DateTime.UtcNow
         };
@@ -34,7 +34,9 @@ public class ProjectService : IProjectService
             Id = created.Id,
             Title = created.Title,
             Description = created.Description,
-            Category = created.Category,
+            GithubLink = created.GithubLink,
+            ImageUrl = created.ImageUrl,
+            Category = created.Category.ToString(),
             CreatedAt = created.CreatedAt
         };
     }
@@ -50,7 +52,7 @@ public class ProjectService : IProjectService
             Description = p.Description,
             GithubLink = p.GithubLink,
             ImageUrl = p.ImageUrl,
-            Category = p.Category,
+            Category = p.Category.ToString(),
             AuthorName = p.User?.Name ?? "Anônimo",
             CreatedAt = p.CreatedAt
         });

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Nexora.Api.Dtos;
+using Nexora.Api.Dtos.Requests;
 using Nexora.Api.Interfaces;
 using System.Security.Claims;
 
@@ -33,7 +33,7 @@ public class UserController : ControllerBase
     }
 
     [HttpPut("me")]
-    public async Task<IActionResult> UpdateMe([FromBody] UpdateProfileDto model)
+    public async Task<IActionResult> UpdateMe([FromBody] UpdateProfileRequestDto model)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userId == null) return Unauthorized();
@@ -47,7 +47,7 @@ public class UserController : ControllerBase
     }
 
     [HttpPost("change-password")]
-    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto model)
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDto model)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userId == null) return Unauthorized();

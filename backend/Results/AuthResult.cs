@@ -1,4 +1,4 @@
-namespace Nexora.Api.Dtos;
+namespace Nexora.Api.Results;
 
 public class AuthResult
 {

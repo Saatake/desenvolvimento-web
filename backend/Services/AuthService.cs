@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Identity;
-using Nexora.Api.Dtos;
+using Nexora.Api.Dtos.Requests;
+using Nexora.Api.Enums;
+using Nexora.Api.Interfaces;
 using Nexora.Api.Models;
 using Nexora.Api.Results;
-using Nexora.Api.Interfaces;
 
 namespace Nexora.Api.Services;
 
@@ -25,7 +26,7 @@ public class AuthService : IAuthService
         _emailService = emailService;
     }
 
-    public async Task<AuthResult> LoginAsync(LoginDto model)
+    public async Task<AuthResult> LoginAsync(LoginRequestDto model)
     {
         var user = await _userManager.FindByEmailAsync(model.Email);
         if (user == null)
@@ -42,7 +43,7 @@ public class AuthService : IAuthService
         return new AuthResult { Succeeded = true, Token = token };
     }
 
-    public async Task<AuthResult> RegisterAsync(RegisterDto model)
+    public async Task<AuthResult> RegisterAsync(RegisterRequestDto model)
     {
         var user = new ApplicationUser
         {
@@ -51,7 +52,7 @@ public class AuthService : IAuthService
             Name = model.Name,
             Course = model.Course,
             Bio = model.Bio,
-            RoleType = model.RoleType
+            RoleType = ParseRoleType(model.RoleType)
         };
 
         var result = await _userManager.CreateAsync(user, model.Password);
@@ -68,6 +69,17 @@ public class AuthService : IAuthService
         return new AuthResult { Succeeded = true, Message = "usuário criado! verifique seu e-mail." };
     }
 
+    private static UserRole ParseRoleType(string roleType)
+    {
+        if (Enum.TryParse<UserRole>(roleType, true, out var parsedRole))
+            return parsedRole;
+
+        if (string.Equals(roleType, "student", StringComparison.OrdinalIgnoreCase))
+            return UserRole.Estudante;
+
+        return UserRole.Estudante;
+    }
+
     public async Task<AuthResult> ConfirmEmailAsync(string email, string token)
     {
         var user = await _userManager.FindByEmailAsync(email);
@@ -79,7 +91,7 @@ public class AuthService : IAuthService
         return new AuthResult { Succeeded = true, Message = "e-mail confirmado com sucesso!" };
     }
 
-    public async Task<AuthResult> ForgotPasswordAsync(ForgotPasswordDto model)
+    public async Task<AuthResult> ForgotPasswordAsync(ForgotPasswordRequestDto model)
     {
         var user = await _userManager.FindByEmailAsync(model.Email);
         if (user == null) return new AuthResult { Succeeded = true, Message = "se o e-mail existir, enviaremos um link." };
@@ -92,7 +104,7 @@ public class AuthService : IAuthService
         return new AuthResult { Succeeded = true, Message = "link de recuperação enviado." };
     }
 
-    public async Task<AuthResult> ResetPasswordAsync(ResetPasswordDto model)
+    public async Task<AuthResult> ResetPasswordAsync(ResetPasswordRequestDto model)
     {
         var user = await _userManager.FindByEmailAsync(model.Email);
         if (user == null) return new AuthResult { Succeeded = false, Message = "solicitação inválida." };

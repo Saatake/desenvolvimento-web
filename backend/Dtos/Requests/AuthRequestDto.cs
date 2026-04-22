@@ -13,7 +13,7 @@ public class RegisterRequestDto
     public string Name { get; set; } = string.Empty;
     public string Course { get; set; } = string.Empty;
     public string Bio { get; set; } = string.Empty;
-    public string RoleType { get; set; } = "Student";
+    public string RoleType { get; set; } = "Estudante";
 }
 
 public class ForgotPasswordRequestDto

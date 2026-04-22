@@ -1,10 +1,10 @@
-using Nexora.Api.Dtos;
-using Nexora.Api.Results;
+using Nexora.Api.Dtos.Requests;
+using Nexora.Api.Dtos.Responses;
 
 namespace Nexora.Api.Interfaces;
 
 public interface IProjectService
 {
-    Task<ProjectResult> CreateProjectAsync(CreateProjectDto model, string userId);
-    Task<IEnumerable<Project>> GetFeedAsync();
+    Task<ProjectResponseDto> CreateProjectAsync(CreateProjectRequestDto model, string userId);
+    Task<IEnumerable<ProjectResponseDto>> GetFeedAsync();
 }

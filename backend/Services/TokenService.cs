@@ -26,7 +26,7 @@ public class TokenService : ITokenService
             new Claim(JwtRegisteredClaimNames.Sub, user.Id),
             new Claim(JwtRegisteredClaimNames.Email, user.Email!),
             new Claim("Name", user.Name),
-            new Claim("RoleType", user.RoleType)
+            new Claim("RoleType", user.RoleType.ToString())
         };
 
         var tokenDescriptor = new SecurityTokenDescriptor
