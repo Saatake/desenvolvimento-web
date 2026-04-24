@@ -85,6 +85,7 @@ const LoginForm: React.FC<{ setIsLogin: (val: boolean) => void }> = ({ setIsLogi
         <AuthInput label="E-MAIL" type="email" placeholder="seu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
         <AuthInput label="SENHA" type="password" placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} required />
       </div>
+
       <div className="pt-6 space-y-4 text-center w-full">
         <button 
           type="submit"
@@ -92,6 +93,14 @@ const LoginForm: React.FC<{ setIsLogin: (val: boolean) => void }> = ({ setIsLogi
           className="w-full flex justify-center items-center bg-white text-indigo-700 py-4 rounded-xl font-bold text-lg hover:bg-indigo-50 transition transform hover:scale-[1.02] shadow-xl disabled:opacity-70 disabled:hover:scale-100"
         >
           {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : 'Entrar agora'}
+        </button>
+
+        <button 
+          type="button"
+          onClick={() => window.location.href = "/dashboard"}
+          className="w-full flex justify-center items-center bg-red-500 text-white py-4 rounded-xl font-bold text-lg hover:bg-red-400 transition transform hover:scale-[1.02] shadow-xl"
+        >
+          Pular para o Dashboard
         </button>
       </div>
     </motion.form>
@@ -166,6 +175,7 @@ const RegisterForm: React.FC<{ setIsLogin: (val: boolean) => void }> = ({ setIsL
           <AuthInput label="CONFIRMAR" type="password" placeholder="********" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
         </div>
       </div>
+
       <div className="pt-4 space-y-4 text-center w-full">
         <button 
           type="submit"
