@@ -7,7 +7,10 @@ public interface IProjectRepository
 {
     Task<Project> CreateAsync(Project project);
     Task<IEnumerable<Project>> GetAllAsync();
-    Task<(IEnumerable<Project> Items, int TotalCount)> GetFilteredAsync(string? search, ProjectCategory? category, int page, int pageSize);
+    Task<(IEnumerable<Project> Items, int TotalCount)> GetFilteredAsync(
+        string? search, ProjectCategory? category, string? course,
+        double? minGrade, string? sort, int page, int pageSize);
+    Task<(IEnumerable<Project> Items, int TotalCount)> GetByUserAsync(string userId, ProjectCategory? category, int page, int pageSize);
     Task<Project?> GetByIdAsync(int id);
     Task UpdateAsync(Project project);
     Task DeleteAsync(Project project);

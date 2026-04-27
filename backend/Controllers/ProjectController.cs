@@ -33,14 +33,32 @@ public class ProjectController : ControllerBase
 
     [HttpGet]
     [AllowAnonymous]
-    public async Task<IActionResult> GetFeed([FromQuery] string? search, [FromQuery] ProjectCategory? category, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    public async Task<IActionResult> GetFeed(
+        [FromQuery] string? search, [FromQuery] ProjectCategory? category,
+        [FromQuery] string? course, [FromQuery] double? minGrade,
+        [FromQuery] string? sort, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
     {
         if (page < 1) page = 1;
         if (pageSize < 1) pageSize = 10;
         if (pageSize > 50) pageSize = 50;
 
-        var feed = await _projectService.GetFeedAsync(search, category, page, pageSize);
+        var feed = await _projectService.GetFeedAsync(search, category, course, minGrade, sort, page, pageSize);
         return Ok(feed);
+    }
+
+    [HttpGet("me")]
+    [Authorize]
+    public async Task<IActionResult> GetMyProjects([FromQuery] ProjectCategory? type, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 10;
+        if (pageSize > 50) pageSize = 50;
+
+        var result = await _projectService.GetMyProjectsAsync(userId, type, page, pageSize);
+        return Ok(result);
     }
 
     [HttpGet("{id}")]

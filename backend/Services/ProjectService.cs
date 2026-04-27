@@ -63,9 +63,22 @@ public class ProjectService : IProjectService
         });
     }
 
-    public async Task<PagedResponseDto<ProjectResponseDto>> GetFeedAsync(string? search, ProjectCategory? category, int page, int pageSize)
+    public async Task<PagedResponseDto<ProjectResponseDto>> GetFeedAsync(string? search, ProjectCategory? category, string? course, double? minGrade, string? sort, int page, int pageSize)
     {
-        var (items, totalCount) = await _projectRepository.GetFilteredAsync(search, category, page, pageSize);
+        var (items, totalCount) = await _projectRepository.GetFilteredAsync(search, category, course, minGrade, sort, page, pageSize);
+
+        return new PagedResponseDto<ProjectResponseDto>
+        {
+            Items = items.Select(MapToDto),
+            Page = page,
+            PageSize = pageSize,
+            TotalCount = totalCount
+        };
+    }
+
+    public async Task<PagedResponseDto<ProjectResponseDto>> GetMyProjectsAsync(string userId, ProjectCategory? category, int page, int pageSize)
+    {
+        var (items, totalCount) = await _projectRepository.GetByUserAsync(userId, category, page, pageSize);
 
         return new PagedResponseDto<ProjectResponseDto>
         {
@@ -141,6 +154,10 @@ public class ProjectService : IProjectService
 
     private static ProjectResponseDto MapToDto(Project p)
     {
+        double? avgGrade = null;
+        if (p.Evaluations != null && p.Evaluations.Any())
+            avgGrade = Math.Round(p.Evaluations.Average(e => (e.Relevance + e.Quality + e.Methodology + e.Presentation + e.Innovation) / 5.0), 2);
+
         return new ProjectResponseDto
         {
             Id = p.Id,
@@ -153,6 +170,7 @@ public class ProjectService : IProjectService
             IsApproved = p.IsApproved,
             ViewCount = p.ViewCount,
             DownloadCount = p.DownloadCount,
+            AverageGrade = avgGrade,
             CreatedAt = p.CreatedAt
         };
     }
