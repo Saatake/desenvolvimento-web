@@ -14,7 +14,7 @@ export default function Dashboard() {
   const [recentProjects, setRecentProjects] = useState<any[]>([]);
 
   useEffect(() => {
-    // Buscar BACKEND no futuro
+    // Buscar BACKEND no futuro --------------------------------------------------------------------------
   }, []);
 
   return (
