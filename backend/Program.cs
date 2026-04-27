@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using Nexora.Api.Services;
 using Nexora.Api.Interfaces;
 using Nexora.Api.Repositories;
+using Nexora.Api.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -63,6 +64,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+// middleware de erros globais (tem que ser o primeiro)
+app.UseMiddleware<ExceptionMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {

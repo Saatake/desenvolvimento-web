@@ -26,7 +26,7 @@ public class ProjectService : IProjectService
             Title = request.Title,
             Description = request.Description,
             GithubLink = request.GithubLink,
-            ImageUrl = request.ImageUrl,
+            FileUrl = request.FileUrl,
             Category = request.Category,
             UserId = userId,
             CreatedAt = DateTime.UtcNow
@@ -40,7 +40,7 @@ public class ProjectService : IProjectService
             Title = created.Title,
             Description = created.Description,
             GithubLink = created.GithubLink,
-            ImageUrl = created.ImageUrl,
+            FileUrl = created.FileUrl,
             Category = created.Category.ToString(),
             CreatedAt = created.CreatedAt
         };
@@ -56,7 +56,7 @@ public class ProjectService : IProjectService
             Title = p.Title,
             Description = p.Description,
             GithubLink = p.GithubLink,
-            ImageUrl = p.ImageUrl,
+            FileUrl = p.FileUrl,
             Category = p.Category.ToString(),
             AuthorName = p.User?.Name ?? "Anônimo",
             CreatedAt = p.CreatedAt
@@ -101,7 +101,7 @@ public class ProjectService : IProjectService
         project.Title = model.Title;
         project.Description = model.Description;
         project.GithubLink = model.GithubLink;
-        project.ImageUrl = model.ImageUrl;
+        project.FileUrl = model.FileUrl;
         project.Category = model.Category;
 
         await _projectRepository.UpdateAsync(project);
@@ -147,10 +147,12 @@ public class ProjectService : IProjectService
             Title = p.Title,
             Description = p.Description,
             GithubLink = p.GithubLink,
-            ImageUrl = p.ImageUrl,
+            FileUrl = p.FileUrl,
             Category = p.Category.ToString(),
             AuthorName = p.User?.Name ?? "Anônimo",
             IsApproved = p.IsApproved,
+            ViewCount = p.ViewCount,
+            DownloadCount = p.DownloadCount,
             CreatedAt = p.CreatedAt
         };
     }
