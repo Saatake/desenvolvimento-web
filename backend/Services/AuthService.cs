@@ -7,6 +7,8 @@ using Nexora.Api.Results;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 
 namespace Nexora.Api.Services;
 
@@ -16,17 +18,23 @@ public class AuthService : IAuthService
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly ITokenService _tokenService;
     private readonly IEmailService _emailService;
+    private readonly ILogger<AuthService> _logger;
+    private readonly string _frontendUrl;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         ITokenService tokenService,
-        IEmailService emailService)
+        IEmailService emailService,
+        IConfiguration configuration,
+        ILogger<AuthService> logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _tokenService = tokenService;
         _emailService = emailService;
+        _logger = logger;
+        _frontendUrl = configuration["FrontendUrl"] ?? "http://localhost:3000";
     }
 
     public async Task<AuthResult> LoginAsync(LoginRequestDto model)
@@ -75,7 +83,7 @@ public class AuthService : IAuthService
                 Course = model.Course ?? "",
                 Bio = model.Bio ?? "",
                 RoleType = ParseRoleType(model.RoleType),
-                EmailConfirmed = true // 🔥 SEM CONFIRMAÇÃO
+                EmailConfirmed = true // modo dev
             };
 
             var result = await _userManager.CreateAsync(user, model.Password);

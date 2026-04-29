@@ -9,7 +9,6 @@ public class ProjectResponseDto
     public string FileUrl { get; set; } = string.Empty;
     public string Category { get; set; } = string.Empty;
     public string AuthorName { get; set; } = string.Empty;
-    public bool IsApproved { get; set; }
     public int ViewCount { get; set; }
     public int DownloadCount { get; set; }
     public double? AverageGrade { get; set; }

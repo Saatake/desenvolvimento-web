@@ -1,5 +1,6 @@
-using System.Net;
-using System.Net.Mail;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using MimeKit;
 using Nexora.Api.Interfaces;
 
 namespace Nexora.Api.Services;
@@ -20,21 +21,16 @@ public class EmailService : IEmailService
         var username = _config["EmailSettings:Username"];
         var password = _config["EmailSettings:Password"];
 
-        using var client = new SmtpClient(host, port)
-        {
-            Credentials = new NetworkCredential(username, password),
-            EnableSsl = true
-        };
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress("Ágora App", username));
+        message.To.Add(MailboxAddress.Parse(email));
+        message.Subject = subject;
+        message.Body = new TextPart("html") { Text = htmlMessage };
 
-        var mailMessage = new MailMessage
-        {
-            From = new MailAddress("nao-responda@agora.com", "Ágora App"),
-            Subject = subject,
-            Body = htmlMessage,
-            IsBodyHtml = true
-        };
-        
-        mailMessage.To.Add(email);
-        await client.SendMailAsync(mailMessage);
+        using var client = new SmtpClient();
+        await client.ConnectAsync(host, port, port == 465 ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls);
+        await client.AuthenticateAsync(username, password);
+        await client.SendAsync(message);
+        await client.DisconnectAsync(true);
     }
 }

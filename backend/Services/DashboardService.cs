@@ -21,8 +21,6 @@ public class DashboardService : IDashboardService
 
         var projectCount = await userProjects.CountAsync();
         var totalViews = await userProjects.SumAsync(p => p.ViewCount);
-        var pendingApproval = await userProjects.CountAsync(p => !p.IsApproved);
-
         var evaluations = await _context.Evaluations
             .Where(e => userProjects.Select(p => p.Id).Contains(e.ProjectId))
             .ToListAsync();
@@ -35,8 +33,7 @@ public class DashboardService : IDashboardService
         {
             ProjectCount = projectCount,
             AverageGrade = averageGrade,
-            TotalViews = totalViews,
-            PendingApproval = pendingApproval
+            TotalViews = totalViews
         };
     }
 

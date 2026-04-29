@@ -136,22 +136,6 @@ public class ProjectService : IProjectService
         return new ProjectResult { Succeeded = true, Message = "projeto deletado com sucesso!" };
     }
 
-    public async Task<ProjectResult> ApproveAsync(int id, string professorId)
-    {
-        var professor = await _userManager.FindByIdAsync(professorId);
-        if (professor == null || professor.RoleType != UserRole.Professor)
-            return new ProjectResult { Succeeded = false, IsForbidden = true, Message = "apenas professores podem aprovar projetos." };
-
-        var project = await _projectRepository.GetByIdAsync(id);
-        if (project == null)
-            return new ProjectResult { Succeeded = false, IsNotFound = true, Message = "projeto não encontrado." };
-
-        project.IsApproved = true;
-        await _projectRepository.UpdateAsync(project);
-
-        return new ProjectResult { Succeeded = true, Message = "projeto aprovado com sucesso!", Data = MapToDto(project) };
-    }
-
     public async Task<ProjectResult> IncrementViewAsync(int id)
     {
         var project = await _projectRepository.GetByIdAsync(id);
@@ -194,7 +178,6 @@ public class ProjectService : IProjectService
             FileUrl = p.FileUrl,
             Category = p.Category.ToString(),
             AuthorName = p.User?.Name ?? "Anônimo",
-            IsApproved = p.IsApproved,
             ViewCount = p.ViewCount,
             DownloadCount = p.DownloadCount,
             AverageGrade = avgGrade,

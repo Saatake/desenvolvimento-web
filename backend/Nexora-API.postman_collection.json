@@ -1,0 +1,670 @@
+{
+	"info": {
+		"_postman_id": "nexora-api-collection",
+		"name": "Nexora API",
+		"description": "Collection completa da API Nexora - Plataforma acadêmica para publicação e avaliação de projetos.\n\n## Roles (Papéis)\n- **Estudante**: Pode criar projetos, comentar, ver feed, dashboard pessoal\n- **Professor**: Pode fazer tudo que o estudante faz + avaliar projetos (dar notas) + aprovar projetos\n\n## Fluxo básico\n1. Registrar usuário (escolher role: Estudante ou Professor)\n2. Fazer login (receber token JWT)\n3. Usar o token no header Authorization para endpoints protegidos\n\n## Variáveis\n- `{{baseUrl}}` - URL base da API\n- `{{token}}` - Token JWT (preenchido automaticamente após login)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://agoraapp-d6agawh0bpchc5aj.eastus-01.azurewebsites.net",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "projectId",
+			"value": "1",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "🔐 Auth",
+			"description": "Endpoints de autenticação: registro, login, confirmação de email e recuperação de senha.\n\nNenhum desses endpoints exige token JWT.",
+			"item": [
+				{
+					"name": "Registrar Estudante",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"aluno@teste.com\",\n    \"password\": \"Senha123!\",\n    \"name\": \"João Silva\",\n    \"course\": \"Engenharia de Software\",\n    \"bio\": \"Estudante de ES na Facens\",\n    \"roleType\": \"Estudante\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "register"]
+						},
+						"description": "Registra um novo usuário como **Estudante**.\n\n- `roleType` pode ser `\"Estudante\"` ou `\"Professor\"`\n- Após o registro, um email de confirmação é enviado\n- O usuário precisa confirmar o email antes de fazer login\n- Senha deve ter no mínimo 6 caracteres"
+					},
+					"response": []
+				},
+				{
+					"name": "Registrar Professor",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"professor@teste.com\",\n    \"password\": \"Senha123!\",\n    \"name\": \"Maria Santos\",\n    \"course\": \"Engenharia de Software\",\n    \"bio\": \"Professora de Desenvolvimento Web\",\n    \"roleType\": \"Professor\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "register"]
+						},
+						"description": "Registra um novo usuário como **Professor**.\n\nProfessores podem:\n- Avaliar projetos (dar notas de 0 a 10 em 5 critérios)\n- Aprovar projetos (tornar visíveis no feed público)\n- Tudo que o estudante pode fazer"
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.token) {",
+									"    pm.collectionVariables.set('token', jsonData.token);",
+									"    console.log('Token salvo automaticamente!');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"aluno@teste.com\",\n    \"password\": \"Senha123!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "login"]
+						},
+						"description": "Faz login e retorna um token JWT.\n\n**O token é salvo automaticamente** na variável `{{token}}` da collection para uso nos próximos requests.\n\nRetorna:\n- `200 OK` com `{ \"token\": \"eyJhbG...\" }`\n- `401 Unauthorized` se email/senha incorretos ou email não confirmado"
+					},
+					"response": []
+				},
+				{
+					"name": "Confirmar Email",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/confirm-email?email=aluno@teste.com&token=TOKEN_DO_EMAIL",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "confirm-email"],
+							"query": [
+								{
+									"key": "email",
+									"value": "aluno@teste.com"
+								},
+								{
+									"key": "token",
+									"value": "TOKEN_DO_EMAIL"
+								}
+							]
+						},
+						"description": "Confirma o email do usuário usando o token enviado por email.\n\nO link completo é enviado no email de registro. Normalmente o front-end chama esse endpoint ao abrir o link.\n\nSubstitua `TOKEN_DO_EMAIL` pelo token real recebido por email."
+					},
+					"response": []
+				},
+				{
+					"name": "Esqueci Minha Senha",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"aluno@teste.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/forgot-password",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "forgot-password"]
+						},
+						"description": "Envia um email com link para resetar a senha.\n\nSempre retorna `200 OK` (mesmo se o email não existir, por segurança)."
+					},
+					"response": []
+				},
+				{
+					"name": "Resetar Senha",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"aluno@teste.com\",\n    \"token\": \"TOKEN_DO_EMAIL\",\n    \"newPassword\": \"NovaSenha123!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/reset-password",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "reset-password"]
+						},
+						"description": "Reseta a senha usando o token recebido por email (via forgot-password).\n\nSubstitua `TOKEN_DO_EMAIL` pelo token real. A nova senha deve ter no mínimo 6 caracteres."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "👤 Users",
+			"description": "Endpoints do perfil do usuário logado.\n\nTodos exigem token JWT no header `Authorization: Bearer {{token}}`.",
+			"item": [
+				{
+					"name": "Ver Meu Perfil",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/users/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "users", "me"]
+						},
+						"description": "Retorna os dados do usuário logado: nome, email, curso, bio e role (Estudante ou Professor).\n\nÚtil para exibir informações no perfil do front-end."
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Meu Perfil",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"João Silva Atualizado\",\n    \"course\": \"Ciência da Computação\",\n    \"bio\": \"Nova bio atualizada\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "users", "me"]
+						},
+						"description": "Atualiza nome, curso e bio do usuário logado.\n\nNão é possível alterar email ou role por aqui."
+					},
+					"response": []
+				},
+				{
+					"name": "Trocar Senha",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"currentPassword\": \"Senha123!\",\n    \"newPassword\": \"NovaSenha456!\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users/change-password",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "users", "change-password"]
+						},
+						"description": "Troca a senha do usuário logado. Precisa informar a senha atual e a nova senha.\n\nDiferente do reset-password (que usa token de email), esse endpoint exige estar logado."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "📁 Projects",
+			"description": "CRUD de projetos acadêmicos + feed público com busca, filtros e paginação.\n\n- Qualquer usuário logado pode criar projetos\n- Apenas o dono pode editar/deletar\n- Feed público mostra todos os projetos",
+			"item": [
+				{
+					"name": "Criar Projeto",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Sistema de Gestão Acadêmica\",\n    \"description\": \"TCC sobre desenvolvimento de um sistema web para gestão de notas e frequência.\",\n    \"githubLink\": \"https://github.com/exemplo/projeto\",\n    \"fileUrl\": \"https://drive.google.com/file/d/exemplo/view\",\n    \"category\": 1\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/projects",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects"]
+						},
+						"description": "Cria um novo projeto acadêmico vinculado ao usuário logado.\n\n**Categorias (campo `category`):**\n- `1` = TCC\n- `2` = Relatório\n- `3` = Projeto Escrito\n\n**Campos:**\n- `title` (obrigatório, max 200 chars)\n- `description` (obrigatório, max 5000 chars)\n- `githubLink` (opcional) - link do repositório\n- `fileUrl` (opcional) - link do arquivo (PDF, Word, Google Drive)\n- `category` (obrigatório) - 1, 2 ou 3\n\nO projeto aparece imediatamente no feed público após criação."
+					},
+					"response": []
+				},
+				{
+					"name": "Feed de Projetos (público)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/projects?page=1&pageSize=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects"],
+							"query": [
+								{
+									"key": "search",
+									"value": "gestão",
+									"description": "Busca por título ou descrição",
+									"disabled": true
+								},
+								{
+									"key": "category",
+									"value": "1",
+									"description": "Filtrar por categoria: 1=TCC, 2=Relatório, 3=ProjetoEscrito",
+									"disabled": true
+								},
+								{
+									"key": "course",
+									"value": "Engenharia de Software",
+									"description": "Filtrar por curso do autor",
+									"disabled": true
+								},
+								{
+									"key": "minGrade",
+									"value": "7.0",
+									"description": "Nota mínima (0-10)",
+									"disabled": true
+								},
+								{
+									"key": "sort",
+									"value": "recent",
+									"description": "Ordenação: recent, grade, views",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Página (começa em 1)"
+								},
+								{
+									"key": "pageSize",
+									"value": "10",
+									"description": "Itens por página (max 50)"
+								}
+							]
+						},
+						"description": "Lista os projetos aprovados (feed público). Não precisa de login.\n\nRetorna resposta paginada com `items`, `page`, `pageSize`, `totalCount`, `totalPages`.\n\n**Filtros disponíveis (query params):**\n- `search` - busca por título ou descrição\n- `category` - 1 (TCC), 2 (Relatório), 3 (Projeto Escrito)\n- `course` - filtra pelo curso do autor\n- `minGrade` - nota mínima (0 a 10)\n- `sort` - ordenação: `recent` (mais recentes), `grade` (melhor nota), `views` (mais vistos)\n\nOs filtros desabilitados podem ser ativados no Postman para testar combinações."
+					},
+					"response": []
+				},
+				{
+					"name": "Meus Projetos",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/me?page=1&pageSize=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects", "me"],
+							"query": [
+								{
+									"key": "type",
+									"value": "1",
+									"description": "Filtrar por categoria: 1=TCC, 2=Relatório, 3=ProjetoEscrito",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "pageSize",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Lista os projetos do usuário logado (aprovados e não aprovados).\n\nDiferente do feed público, aqui mostra TODOS os projetos do usuário, independente de aprovação."
+					},
+					"response": []
+				},
+				{
+					"name": "Ver Projeto por ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/{{projectId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects", "{{projectId}}"]
+						},
+						"description": "Retorna os detalhes completos de um projeto específico: título, descrição, links, categoria, autor, nota média, contadores de visualização e download.\n\nNão precisa de login."
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Projeto",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Título Atualizado\",\n    \"description\": \"Descrição atualizada do projeto.\",\n    \"githubLink\": \"https://github.com/exemplo/projeto-v2\",\n    \"fileUrl\": \"https://drive.google.com/file/d/novo/view\",\n    \"category\": 1\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/{{projectId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects", "{{projectId}}"]
+						},
+						"description": "Atualiza um projeto existente. **Apenas o dono do projeto pode editar.**\n\nRetorna `403 Forbidden` se tentar editar projeto de outro usuário."
+					},
+					"response": []
+				},
+				{
+					"name": "Deletar Projeto",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/{{projectId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects", "{{projectId}}"]
+						},
+						"description": "Deleta um projeto. **Apenas o dono do projeto pode deletar.**\n\nRetorna `403 Forbidden` se tentar deletar projeto de outro usuário."
+					},
+					"response": []
+				},
+				{
+					"name": "Registrar Visualização",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/{{projectId}}/views",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects", "{{projectId}}", "views"]
+						},
+						"description": "Incrementa o contador de visualizações do projeto em +1.\n\nO front-end deve chamar esse endpoint quando o usuário abre a página de detalhes de um projeto. Não precisa de login."
+					},
+					"response": []
+				},
+				{
+					"name": "Download (Obter Link do Arquivo)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/{{projectId}}/download",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects", "{{projectId}}", "download"]
+						},
+						"description": "Retorna a URL do arquivo do projeto (PDF, Word, Google Drive) e incrementa o contador de downloads.\n\nO front-end usa o `fileUrl` retornado para redirecionar o usuário ao arquivo. Não precisa de login."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "💬 Comments",
+			"description": "Comentários em projetos. Qualquer usuário logado pode comentar. A listagem é pública.",
+			"item": [
+				{
+					"name": "Listar Comentários do Projeto",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/{{projectId}}/comments",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects", "{{projectId}}", "comments"]
+						},
+						"description": "Lista todos os comentários de um projeto específico.\n\nRetorna array com: id, texto, nome do autor, data de criação.\n\nNão precisa de login."
+					},
+					"response": []
+				},
+				{
+					"name": "Criar Comentário",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"text\": \"Excelente projeto! A abordagem da metodologia ficou muito clara.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/{{projectId}}/comments",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects", "{{projectId}}", "comments"]
+						},
+						"description": "Adiciona um comentário em um projeto. Precisa estar logado (estudante ou professor).\n\nO comentário fica vinculado ao usuário logado automaticamente.\n\n- `text` (obrigatório, max 2000 chars)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "⭐ Evaluations (Avaliações)",
+			"description": "Sistema de avaliação de projetos por professores.\n\n**Apenas professores podem avaliar.** Cada avaliação tem 5 critérios com nota de 0 a 10:\n- Relevância\n- Qualidade\n- Metodologia\n- Apresentação\n- Inovação\n\nA média dessas 5 notas vira a nota geral do projeto (usada no ranking e filtros).",
+			"item": [
+				{
+					"name": "Listar Avaliações do Projeto",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/{{projectId}}/evaluations",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects", "{{projectId}}", "evaluations"]
+						},
+						"description": "Lista todas as avaliações de um projeto.\n\nCada avaliação mostra: as 5 notas individuais, a média, o feedback escrito e o nome do professor que avaliou.\n\nNão precisa de login."
+					},
+					"response": []
+				},
+				{
+					"name": "Avaliar Projeto (Professor)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"relevance\": 8.5,\n    \"quality\": 9.0,\n    \"methodology\": 7.5,\n    \"presentation\": 8.0,\n    \"innovation\": 9.5,\n    \"feedback\": \"Projeto muito bem elaborado. A metodologia poderia ser mais detalhada, mas no geral está excelente.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/{{projectId}}/evaluations",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects", "{{projectId}}", "evaluations"]
+						},
+						"description": "Cria uma avaliação para um projeto.\n\n⚠️ **APENAS PROFESSORES** podem avaliar. Estudantes recebem `403 Forbidden`.\n\n**Critérios (todos obrigatórios, nota de 0 a 10):**\n- `relevance` - Relevância do tema\n- `quality` - Qualidade do trabalho\n- `methodology` - Metodologia utilizada\n- `presentation` - Apresentação/formatação\n- `innovation` - Inovação da proposta\n\n**Opcional:**\n- `feedback` - Comentário do professor (max 2000 chars)\n\nA média das 5 notas é calculada automaticamente e aparece no projeto."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "📊 Dashboard",
+			"description": "Dashboard pessoal do usuário logado. Mostra estatísticas e gráficos dos seus próprios projetos.\n\nTodos os endpoints exigem login.",
+			"item": [
+				{
+					"name": "Minhas Estatísticas",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/dashboard/stats",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "dashboard", "stats"]
+						},
+						"description": "Retorna estatísticas resumidas dos projetos do usuário logado:\n\n- `projectCount` - Quantos projetos o usuário tem\n- `averageGrade` - Média geral das notas recebidas\n- `totalViews` - Total de visualizações em todos os projetos\n- `pendingApproval` - Quantos projetos aguardam aprovação"
+					},
+					"response": []
+				},
+				{
+					"name": "Meus Gráficos",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/dashboard/charts",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "dashboard", "charts"]
+						},
+						"description": "Retorna dados para gráficos do dashboard pessoal:\n\n- `gradeEvolution` - Evolução da nota média por mês (para gráfico de linha)\n- `criteriaAverage` - Média por critério: relevância, qualidade, metodologia, apresentação, inovação (para gráfico radar/bar)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🏆 Ranking",
+			"description": "Rankings públicos da plataforma. Não precisam de login.",
+			"item": [
+				{
+					"name": "Top Projetos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/ranking/projects",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "ranking", "projects"]
+						},
+						"description": "Retorna os 10 projetos com melhor nota média.\n\nCada item tem: posição, id do projeto, título, nome do autor, nota média e visualizações."
+					},
+					"response": []
+				},
+				{
+					"name": "Top Estudantes",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/ranking/students",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "ranking", "students"]
+						},
+						"description": "Retorna os 10 estudantes com melhor nota média nos projetos.\n\nCada item tem: posição, nome, curso, nota média e quantidade de projetos."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "📈 Stats",
+			"description": "Estatísticas gerais da plataforma. Público, não precisa de login.",
+			"item": [
+				{
+					"name": "Estatísticas Gerais",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/stats/general",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "stats", "general"]
+						},
+						"description": "Retorna números gerais da plataforma:\n\n- `totalProjects` - Total de projetos cadastrados\n- `generalAverage` - Nota média geral de todos os projetos\n- `totalViews` - Total de visualizações na plataforma\n- `totalStudents` - Total de estudantes registrados\n\nÚtil para exibir na home page da plataforma."
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
