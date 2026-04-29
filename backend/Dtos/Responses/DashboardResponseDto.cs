@@ -5,7 +5,6 @@ public class DashboardStatsDto
     public int ProjectCount { get; set; }
     public double AverageGrade { get; set; }
     public int TotalViews { get; set; }
-    public int PendingApproval { get; set; }
 }
 
 public class DashboardChartsDto
