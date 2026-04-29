@@ -1,46 +1,36 @@
+using Microsoft.IdentityModel.Tokens;
+using Nexora.Api.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.IdentityModel.Tokens;
-using Nexora.Api.Models;
-using Nexora.Api.Interfaces;
 
 namespace Nexora.Api.Services;
 
-public class TokenService : ITokenService
+public class TokenService
 {
-    private readonly IConfiguration _configuration;
-
-    public TokenService(IConfiguration configuration)
-    {
-        _configuration = configuration;
-    }
-
     public string GenerateJwtToken(ApplicationUser user)
     {
-        var jwtKey = _configuration["Jwt:Key"];
-        var keyBytes = Encoding.UTF8.GetBytes(jwtKey!);
-
-        var claims = new[]
+        var claims = new List<Claim>
         {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email!),
-            new Claim("Name", user.Name),
-            new Claim("RoleType", user.RoleType.ToString())
+            new Claim(ClaimTypes.NameIdentifier, user.Id),
+            new Claim(ClaimTypes.Email, user.Email ?? ""),
+            new Claim(ClaimTypes.Name, user.Name ?? "")
         };
 
-        var tokenDescriptor = new SecurityTokenDescriptor
-        {
-            Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddHours(2),
-            Issuer = _configuration["Jwt:Issuer"],
-            Audience = _configuration["Jwt:Audience"],
-            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(keyBytes), SecurityAlgorithms.HmacSha256Signature)
-        };
+        var key = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes("SUA_CHAVE_SUPER_SECRETA_AQUI_123456")
+        );
 
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var token = tokenHandler.CreateToken(tokenDescriptor);
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        return tokenHandler.WriteToken(token);
+        var token = new JwtSecurityToken(
+            issuer: "agora-api",
+            audience: "agora-app",
+            claims: claims,
+            expires: DateTime.UtcNow.AddDays(7),
+            signingCredentials: creds
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }

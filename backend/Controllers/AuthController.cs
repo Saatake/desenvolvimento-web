@@ -19,15 +19,23 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Login([FromBody] LoginRequestDto model)
     {
         var result = await _authService.LoginAsync(model);
-        if (!result.Succeeded) return result.IsUnauthorized ? Unauthorized(new { result.Message }) : BadRequest(new { result.Errors });
-        return Ok(new { Token = result.Token });
+
+        if (!result.Succeeded)
+            return result.IsUnauthorized
+                ? Unauthorized(new { result.Message })
+                : BadRequest(new { result.Errors });
+
+        return Ok(new { result.Token });
     }
 
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequestDto model)
     {
         var result = await _authService.RegisterAsync(model);
-        if (!result.Succeeded) return BadRequest(new { result.Errors });
+
+        if (!result.Succeeded)
+            return BadRequest(new { result.Errors, result.Message });
+
         return Ok(new { result.Message });
     }
 
@@ -35,7 +43,10 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> ConfirmEmail([FromQuery] string email, [FromQuery] string token)
     {
         var result = await _authService.ConfirmEmailAsync(email, token);
-        if (!result.Succeeded) return BadRequest(new { result.Message });
+
+        if (!result.Succeeded)
+            return BadRequest(new { result.Message });
+
         return Ok(new { result.Message });
     }
 
@@ -50,7 +61,10 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestDto model)
     {
         var result = await _authService.ResetPasswordAsync(model);
-        if (!result.Succeeded) return BadRequest(new { result.Errors });
+
+        if (!result.Succeeded)
+            return BadRequest(new { result.Errors, result.Message });
+
         return Ok(new { result.Message });
     }
 }

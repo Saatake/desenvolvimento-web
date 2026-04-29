@@ -22,12 +22,16 @@ public class UserController : ControllerBase
     public async Task<IActionResult> GetMe()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId == null) return Unauthorized();
+
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized();
 
         var result = await _userService.GetProfileAsync(userId);
-        
-        if (!result.Succeeded) 
-            return result.IsNotFound ? NotFound(new { result.Message }) : BadRequest(new { result.Errors });
+
+        if (!result.Succeeded)
+            return result.IsNotFound
+                ? NotFound(new { result.Message })
+                : BadRequest(new { result.Errors });
 
         return Ok(result.Data);
     }
@@ -36,12 +40,16 @@ public class UserController : ControllerBase
     public async Task<IActionResult> UpdateMe([FromBody] UpdateProfileRequestDto model)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId == null) return Unauthorized();
+
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized();
 
         var result = await _userService.UpdateProfileAsync(userId, model);
 
         if (!result.Succeeded)
-            return result.IsNotFound ? NotFound(new { result.Message }) : BadRequest(new { result.Errors });
+            return result.IsNotFound
+                ? NotFound(new { result.Message })
+                : BadRequest(new { result.Errors });
 
         return Ok(new { result.Message });
     }
@@ -50,12 +58,14 @@ public class UserController : ControllerBase
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDto model)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId == null) return Unauthorized();
+
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized();
 
         var result = await _userService.ChangePasswordAsync(userId, model);
 
         if (!result.Succeeded)
-            return result.IsNotFound ? NotFound(new { result.Message }) : BadRequest(new { result.Errors });
+            return BadRequest(new { result.Errors });
 
         return Ok(new { result.Message });
     }
