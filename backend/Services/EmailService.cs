@@ -28,7 +28,7 @@ public class EmailService : IEmailService
         message.Body = new TextPart("html") { Text = htmlMessage };
 
         using var client = new SmtpClient();
-        await client.ConnectAsync(host, port, SecureSocketOptions.StartTls);
+        await client.ConnectAsync(host, port, port == 465 ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls);
         await client.AuthenticateAsync(username, password);
         await client.SendAsync(message);
         await client.DisconnectAsync(true);
