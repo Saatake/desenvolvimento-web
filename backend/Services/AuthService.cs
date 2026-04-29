@@ -13,6 +13,7 @@ public class AuthService : IAuthService
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly ITokenService _tokenService;
     private readonly IEmailService _emailService;
+    private readonly ILogger<AuthService> _logger;
     private readonly string _frontendUrl;
 
     public AuthService(
@@ -20,12 +21,14 @@ public class AuthService : IAuthService
         SignInManager<ApplicationUser> signInManager,
         ITokenService tokenService,
         IEmailService emailService,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        ILogger<AuthService> logger)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _tokenService = tokenService;
         _emailService = emailService;
+        _logger = logger;
         _frontendUrl = configuration["FrontendUrl"] ?? "http://localhost:3000";
     }
 
@@ -78,7 +81,15 @@ public class AuthService : IAuthService
             <p style='color: #777777; font-size: 12px; text-align: center;'>Se o botão não funcionar, copie e cole o link abaixo no seu navegador:<br><a href='{link}' style='color: #2F80ED; word-break: break-all;'>{link}</a></p>
         </div>";
 
-        await _emailService.SendEmailAsync(user.Email!, "confirme sua conta no ágora", htmlMessage);
+        try
+        {
+            await _emailService.SendEmailAsync(user.Email!, "confirme sua conta no ágora", htmlMessage);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Falha ao enviar e-mail de confirmação para {Email}", user.Email);
+            return new AuthResult { Succeeded = true, Message = "usuário criado! não foi possível enviar o e-mail de confirmação. tente reenviar mais tarde." };
+        }
 
         return new AuthResult { Succeeded = true, Message = "usuário criado! verifique seu e-mail." };
     }
@@ -114,7 +125,15 @@ public class AuthService : IAuthService
         var encodedToken = Uri.EscapeDataString(token);
         var link = $"{_frontendUrl}/resetar-senha?email={user.Email}&token={encodedToken}";
 
-        await _emailService.SendEmailAsync(user.Email!, "recuperação de senha", $"clique <a href='{link}'>aqui</a> para resetar sua senha.");
+        try
+        {
+            await _emailService.SendEmailAsync(user.Email!, "recuperação de senha", $"clique <a href='{link}'>aqui</a> para resetar sua senha.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Falha ao enviar e-mail de recuperação para {Email}", user.Email);
+            return new AuthResult { Succeeded = true, Message = "se o e-mail existir, enviaremos um link." };
+        }
         return new AuthResult { Succeeded = true, Message = "link de recuperação enviado." };
     }
 
