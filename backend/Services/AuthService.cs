@@ -41,6 +41,9 @@ public class AuthService : IAuthService
     {
         try
         {
+            if (string.IsNullOrEmpty(model.Email) || string.IsNullOrEmpty(model.Password))
+                return Fail("dados inválidos");
+
             var user = await _userManager.FindByEmailAsync(model.Email);
 
             if (user == null)
@@ -61,7 +64,7 @@ public class AuthService : IAuthService
         }
         catch (Exception ex)
         {
-            Console.WriteLine("LOGIN ERROR: " + ex.Message);
+            _logger.LogError(ex, "Erro no login");
 
             return new AuthResult
             {
@@ -75,6 +78,15 @@ public class AuthService : IAuthService
     {
         try
         {
+            if (string.IsNullOrEmpty(model.Email) || string.IsNullOrEmpty(model.Password))
+            {
+                return new AuthResult
+                {
+                    Succeeded = false,
+                    Message = "dados inválidos"
+                };
+            }
+
             var user = new ApplicationUser
             {
                 UserName = model.Email,
@@ -83,7 +95,7 @@ public class AuthService : IAuthService
                 Course = model.Course ?? "",
                 Bio = model.Bio ?? "",
                 RoleType = ParseRoleType(model.RoleType),
-                EmailConfirmed = true // modo dev
+                EmailConfirmed = true
             };
 
             var result = await _userManager.CreateAsync(user, model.Password);
@@ -105,7 +117,7 @@ public class AuthService : IAuthService
         }
         catch (Exception ex)
         {
-            Console.WriteLine("REGISTER ERROR: " + ex.Message);
+            _logger.LogError(ex, "Erro no registro");
 
             return new AuthResult
             {
@@ -117,46 +129,46 @@ public class AuthService : IAuthService
 
     public async Task<AuthResult> ConfirmEmailAsync(string email, string token)
     {
-        return new AuthResult
+        return await Task.FromResult(new AuthResult
         {
             Succeeded = true,
             Message = "email desativado no modo dev"
-        };
+        });
     }
 
     public async Task<AuthResult> ForgotPasswordAsync(ForgotPasswordRequestDto model)
     {
-        return new AuthResult
+        return await Task.FromResult(new AuthResult
         {
             Succeeded = true,
             Message = "modo dev ativo"
-        };
+        });
     }
 
     public async Task<AuthResult> ResetPasswordAsync(ResetPasswordRequestDto model)
     {
-        return new AuthResult
+        return await Task.FromResult(new AuthResult
         {
             Succeeded = true,
             Message = "modo dev ativo"
-        };
+        });
     }
 
     private static UserRole ParseRoleType(string? roleType)
     {
-        if (Enum.TryParse<UserRole>(roleType, true, out var role))
+        if (!string.IsNullOrEmpty(roleType) && Enum.TryParse<UserRole>(roleType, true, out var role))
             return role;
 
         return UserRole.Estudante;
     }
 
-    private static AuthResult Fail()
+    private static AuthResult Fail(string message = "usuário ou senha inválidos.")
     {
         return new AuthResult
         {
             Succeeded = false,
             IsUnauthorized = true,
-            Message = "usuário ou senha inválidos."
+            Message = message
         };
     }
 }

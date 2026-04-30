@@ -12,6 +12,7 @@ using Nexora.Api.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// FRONTEND URL
 var frontendUrl = builder.Configuration["FrontendUrl"] ?? "http://localhost:3000";
 
 // DB
@@ -19,32 +20,45 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
-// Identity (sem endpoints automáticos)
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-    .AddEntityFrameworkStores<AppDbContext>()
-    .AddDefaultTokenProviders();
+// ✅ IDENTITY (CORRIGIDO - SEM CONFIRMAÇÃO DE EMAIL)
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+{
+    options.SignIn.RequireConfirmedEmail = false;
+})
+.AddEntityFrameworkStores<AppDbContext>()
+.AddDefaultTokenProviders();
 
-// JWT
-var jwtKey = builder.Configuration["Jwt:Key"];
-var keyBytes = Encoding.UTF8.GetBytes(jwtKey!);
+// ✅ JWT (TEM QUE SER IGUAL AO TOKEN SERVICE)
+var key = "SUA_CHAVE_SUPER_SECRETA_AQUI_123456";
+var keyBytes = Encoding.UTF8.GetBytes(key);
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
 .AddJwtBearer(options =>
 {
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
+        ValidIssuer = "agora-api",
 
-        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-        ValidAudience = builder.Configuration["Jwt:Audience"],
+        ValidateAudience = true,
+        ValidAudience = "agora-app",
+
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero,
+
+        ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(keyBytes)
     };
 });
 
-// IMPORTANTÍSSIMO
+// AUTH
 builder.Services.AddAuthorization();
 
 // CORS
@@ -59,7 +73,7 @@ builder.Services.AddCors(options =>
         });
 });
 
-// Services
+// SERVICES
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
@@ -92,6 +106,7 @@ app.UseCors("AllowFrontend");
 
 app.UseHttpsRedirection();
 
+// ORDEM CORRETA
 app.UseAuthentication();
 app.UseAuthorization();
 

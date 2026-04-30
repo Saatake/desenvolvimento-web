@@ -1,4 +1,5 @@
 using Microsoft.IdentityModel.Tokens;
+using Nexora.Api.Interfaces;
 using Nexora.Api.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -6,7 +7,7 @@ using System.Text;
 
 namespace Nexora.Api.Services;
 
-public class TokenService
+public class TokenService : ITokenService
 {
     public string GenerateJwtToken(ApplicationUser user)
     {
